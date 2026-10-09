@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Complaint Tracker</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --border: #e5e7eb;
+    --text: #14161f;
+    --text-muted: #6b7280;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+
+    --open-bg: #fee2e2; --open-fg: #991b1b; --open-dot: #ef4444;
+    --prog-bg: #fef3c7; --prog-fg: #92400e; --prog-dot: #f59e0b;
+    --res-bg: #d1fae5;  --res-fg: #065f46;  --res-dot: #10b981;
+    --clo-bg: #e5e7eb;  --clo-fg: #374151;  --clo-dot: #9ca3af;
+
+    --prio-high: #ef4444;
+    --prio-medium: #f59e0b;
+    --prio-low: #9ca3af;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1117;
+      --surface: #171923;
+      --border: #2a2d3a;
+      --text: #e8e9ed;
+      --text-muted: #9ca0ae;
+      --accent: #818cf8;
+      --accent-hover: #a5b4fc;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.25);
+
+      --open-bg: #3f1d1d; --open-fg: #fca5a5;
+      --prog-bg: #3f2f0d; --prog-fg: #fcd34d;
+      --res-bg: #0d3327;  --res-fg: #6ee7b7;
+      --clo-bg: #262a36;  --clo-fg: #b8bcc8;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.9rem 1rem;
+    box-shadow: var(--shadow);
+  }
+
+  .stat .n {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .stat .label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .card h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+  }
+
+  form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+  }
+
+  form .full { grid-column: 1 / -1; }
+
+  label.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  input, textarea, select {
+    font: inherit;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  textarea { resize: vertical; min-height: 4.5rem; }
+
+  .actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  button {
+    font: inherit;
+    font-weight: 600;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.3rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  button:hover { background: var(--accent-hover); }
+
+  .list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  select#status-filter {
+    width: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 0 0.75rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 0.85rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+
+  .customer .name { font-weight: 600; }
+  .customer .email { color: var(--text-muted); font-size: 0.8rem; }
+
+  .priority {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  .priority::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dot, var(--text-muted));
+  }
+
+  .priority.high { --dot: var(--prio-high); }
+  .priority.medium { --dot: var(--prio-medium); }
+  .priority.low { --dot: var(--prio-low); }
+
+  .status-select {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.3rem 0.5rem;
+    border: none;
+    border-radius: 999px;
+  }
+
+  .status-select.open { background: var(--open-bg); color: var(--open-fg); }
+  .status-select.in_progress { background: var(--prog-bg); color: var(--prog-fg); }
+  .status-select.resolved { background: var(--res-bg); color: var(--res-fg); }
+  .status-select.closed { background: var(--clo-bg); color: var(--clo-fg); }
+
+  .empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 3rem 1rem;
+  }
+
+  @media (max-width: 640px) {
+    form { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    tbody tr {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 0.75rem;
+    }
+    td { border: none; padding: 0.35rem 0; }
+    td::before {
+      content: attr(data-label);
+      display: block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div>
+      <h1>Complaint Tracker</h1>
+      <p class="subtitle">Log and resolve customer complaints</p>
+    </div>
+    <button id="logout" type="button" style="background:transparent;color:var(--text-muted);border:1px solid var(--border);">Sign out</button>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <section class="card">
+    <h2>New complaint</h2>
+    <form id="new-complaint">
+      <label class="field">Customer name
+        <input name="customer_name" placeholder="Jane Doe" required>
+      </label>
+      <label class="field">Customer email
+        <input name="customer_email" type="email" placeholder="jane@example.com" required>
+      </label>
+      <label class="field full">Subject
+        <input name="subject" placeholder="Brief summary" required>
+      </label>
+      <label class="field full">Description
+        <textarea name="description" placeholder="What happened?" required></textarea>
+      </label>
+      <label class="field">Priority
+        <select name="priority">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </label>
+      <div class="actions">
+        <button type="submit">Submit complaint</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    <div class="list-header">
+      <h2>Complaints</h2>
+      <select id="status-filter">
+        <option value="">All statuses</option>
+        <option value="open">Open</option>
+        <option value="in_progress">In progress</option>
+        <option value="resolved">Resolved</option>
+        <option value="closed">Closed</option>
+      </select>
+    </div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Customer</th><th>Subject</th><th>Priority</th><th>Status</th><th>Updated</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="pagination" style="display:flex; align-items:center; justify-content:center; gap:1rem; margin-top:1rem; font-size:0.85rem; color:var(--text-muted);"></div>
+  </section>
+</div>
+
+<script>
+const rowsEl = document.getElementById('rows');
+const statsEl = document.getElementById('stats');
+const filterEl = document.getElementById('status-filter');
+const paginationEl = document.getElementById('pagination');
+const STATUSES = ['open', 'in_progress', 'resolved', 'closed'];
+const STATUS_LABEL = { open: 'Open', in_progress: 'In progress', resolved: 'Resolved', closed: 'Closed' };
+const PAGE_SIZE = 10;
+let page = 1;
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function api(path, opts) {
+  const res = await fetch(path, opts);
+  if (res.status === 401) { location.href = '/login'; throw new Error('unauthenticated'); }
+  return res;
+}
+
+async function renderStats() {
+  const counts = await api('/api/stats').then(r => r.json());
+  statsEl.innerHTML = `
+    <div class="stat"><div class="n">${counts.total}</div><div class="label">Total</div></div>
+    <div class="stat"><div class="n">${counts.open}</div><div class="label">Open</div></div>
+    <div class="stat"><div class="n">${counts.in_progress}</div><div class="label">In progress</div></div>
+    <div class="stat"><div class="n">${counts.resolved + counts.closed}</div><div class="label">Resolved</div></div>
+  `;
+}
+
+async function load() {
+  renderStats();
+
+  const status = filterEl.value;
+  const params = new URLSearchParams({ page, page_size: PAGE_SIZE });
+  if (status) params.set('status', status);
+  const { items: complaints, total_pages } = await api(`/api/complaints?${params}`).then(r => r.json());
+
+  paginationEl.innerHTML = `
+    <button type="button" id="prev-page" ${page <= 1 ? 'disabled' : ''}>&larr; Prev</button>
+    <span>Page ${page} of ${total_pages}</span>
+    <button type="button" id="next-page" ${page >= total_pages ? 'disabled' : ''}>Next &rarr;</button>
+  `;
+  document.getElementById('prev-page').onclick = () => { page--; load(); };
+  document.getElementById('next-page').onclick = () => { page++; load(); };
+
+  if (!complaints.length) {
+    rowsEl.innerHTML = `<tr><td colspan="6"><div class="empty">No complaints here yet.</div></td></tr>`;
+    return;
+  }
+
+  rowsEl.innerHTML = complaints.map(c => `
+    <tr>
+      <td data-label="#">${c.id}</td>
+      <td data-label="Customer" class="customer">
+        <div class="name">${escapeHtml(c.customer_name)}</div>
+        <div class="email">${escapeHtml(c.customer_email)}</div>
+      </td>
+      <td data-label="Subject">${escapeHtml(c.subject)}</td>
+      <td data-label="Priority"><span class="priority ${c.priority}">${c.priority}</span></td>
+      <td data-label="Status">
+        <select class="status-select ${c.status}" data-id="${c.id}">
+          ${STATUSES.map(s => `<option value="${s}" ${s === c.status ? 'selected' : ''}>${STATUS_LABEL[s]}</option>`).join('')}
+        </select>
+      </td>
+      <td data-label="Updated">${new Date(c.updated_at).toLocaleString()}</td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('new-complaint').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form));
+  const res = await api('/api/complaints', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+  if (res.ok) { form.reset(); page = 1; load(); } else { alert((await res.json()).error); }
+});
+
+rowsEl.addEventListener('change', async (e) => {
+  if (!e.target.classList.contains('status-select')) return;
+  const id = e.target.dataset.id;
+  const status = e.target.value;
+  await api(`/api/complaints/${id}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status }) });
+  load();
+});
+
+document.getElementById('logout').addEventListener('click', async () => {
+  await fetch('/api/logout', { method: 'POST' });
+  location.href = '/login';
+});
+
+filterEl.addEventListener('change', () => { page = 1; load(); });
+load();
+</script>
+</body>
+</html>

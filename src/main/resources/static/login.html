@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — Complaint Tracker</title>
+<style>
+  :root {
+    --bg: #f6f7fb; --surface: #ffffff; --border: #e5e7eb;
+    --text: #14161f; --text-muted: #6b7280;
+    --accent: #4f46e5; --accent-hover: #4338ca;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1117; --surface: #171923; --border: #2a2d3a;
+      --text: #e8e9ed; --text-muted: #9ca0ae;
+      --accent: #818cf8; --accent-hover: #a5b4fc;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 2rem; width: 320px;
+  }
+  h1 { font-size: 1.2rem; margin: 0 0 1.25rem; }
+  label { display: block; font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0.3rem; }
+  input {
+    width: 100%; font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.7rem; margin-bottom: 1rem;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+  button {
+    width: 100%; font: inherit; font-weight: 600; background: var(--accent); color: #fff;
+    border: none; border-radius: 8px; padding: 0.6rem; cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  .error { color: #ef4444; font-size: 0.85rem; margin: -0.5rem 0 1rem; min-height: 1.1em; }
+</style>
+</head>
+<body>
+<form class="card" id="login">
+  <h1>Sign in</h1>
+  <label for="email">Email</label>
+  <input id="email" name="email" type="email" required autofocus>
+  <label for="password">Password</label>
+  <input id="password" name="password" type="password" required>
+  <div class="error" id="error"></div>
+  <button type="submit">Sign in</button>
+</form>
+<script>
+document.getElementById('login').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const res = await fetch('/api/login', { method: 'POST', body: new URLSearchParams(new FormData(e.target)) });
+  if (res.ok) {
+    location.href = '/';
+  } else {
+    document.getElementById('error').textContent = 'Invalid credentials';
+  }
+});
+</script>
+</body>
+</html>
