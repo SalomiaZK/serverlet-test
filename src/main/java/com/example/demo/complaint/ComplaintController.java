@@ -68,7 +68,8 @@ public class ComplaintController {
 
   @GetMapping("/complaints/{id}")
   public Complaint get(@PathVariable long id) {
-    return repo.findById(id).orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "complaint not found"));
+    return repo.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "complaint not found"));
   }
 
   @PostMapping("/complaints")

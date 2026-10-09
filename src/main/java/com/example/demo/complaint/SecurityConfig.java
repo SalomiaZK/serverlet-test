@@ -32,10 +32,7 @@ public class SecurityConfig implements WebMvcConfigurer {
       @Value("${ADMIN_PASSWORD}") String password,
       PasswordEncoder encoder) {
     return new InMemoryUserDetailsManager(
-        User.withUsername(email)
-            .password(encoder.encode(password))
-            .roles("ADMIN")
-            .build());
+        User.withUsername(email).password(encoder.encode(password)).roles("ADMIN").build());
   }
 
   @Bean
